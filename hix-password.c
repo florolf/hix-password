@@ -62,5 +62,5 @@ int main(int argc, char **argv)
 	crypt(mac, pwd);
 	printf("Password: %s\n", pwd);
 
-	return EXIT_FAILURE;
+	return EXIT_SUCCESS;
 }
