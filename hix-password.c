@@ -8,7 +8,7 @@ void crypt(uint8_t *mac, char *out)
 	char chars[] = "XEvy7cOnW1tr40AYIKm8qsTSLoz3DaCPGkBQUl5gMhw2jdFRpubNZfH9VxiJe6x";
 	uint32_t factors[] = { 0x7, 0xb, 0xd, 0x11, 0x17, 0x1d, 0x1f, 0x25 };
 
-	uint32_t buf[10], scratch[10];
+	uint32_t buf[10];
 	buf[0] = (uint8_t)(~mac[3]);
 	buf[7] = (uint8_t)((mac[1] >> 3) | (mac[5] << 3));
 	buf[8] = (uint8_t)((mac[4] >> 1) ^ (mac[3] << 2));
@@ -17,25 +17,16 @@ void crypt(uint8_t *mac, char *out)
 	for(int i = 0; i < 6; i++)
 		buf[1 + i] = mac[5 - i];
 
-	memcpy(scratch, buf, sizeof(buf));
-
-	uint32_t mask = 1;
-	for(int factor = 0; factor < 8; factor++) {
+	uint32_t offset = 0;
+	for(int bit = 0; bit < 8; bit++) {
 		for(int i = 0; i < 10; i++) {
-			if((buf[i] & mask) == 0)
-				continue;
-
-			int add = factors[factor] * (i + 1);
-
-			for(int i = 0; i < 10; i++)
-				scratch[i] += add;
+			if((buf[i] & (1 << bit)) != 0)
+				offset += factors[bit] * (i + 1);
 		}
-
-		mask <<= 1;
 	}
 
 	for(int i = 0; i < 10; i++)
-		out[i] = chars[scratch[i] % 63];
+		out[i] = chars[(buf[i] + offset) % 63];
 
 	out[10] = 0;
 }
